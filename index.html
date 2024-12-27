@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flag Quiz</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #73a5ff, #5478f7);
+      color: #333;
+    }
+
+    #quiz-container, #start-container, #end-container {
+      max-width: 700px;
+      margin: 50px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    #timer {
+      font-size: 24px;
+      font-weight: bold;
+      color: #ff4b5c;
+      margin-bottom: 20px;
+    }
+
+    img#flag {
+      width: 300px;
+      height: auto;
+      margin: 20px 0;
+      border: 3px solid #ddd;
+      border-radius: 10px;
+    }
+
+    input {
+      width: calc(100% - 40px);
+      max-width: 400px;
+      padding: 12px;
+      font-size: 18px;
+      border: 2px solid #5478f7;
+      border-radius: 8px;
+      outline: none;
+      margin-top: 20px;
+    }
+
+    input:focus {
+      border-color: #73a5ff;
+      box-shadow: 0 0 10px rgba(115, 165, 255, 0.5);
+    }
+
+    button {
+      background: #5478f7;
+      color: white;
+      font-size: 18px;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: #73a5ff;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    #end-container {
+      display: none;
+    }
+
+    #question-number {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="start-container">
+    <h1 style="color: black;">Guess the Flag by its Capital and Country!</h1>
+    <p style="color: black;">Once the quiz begin, you have 30 minutes to finish the quiz.</p>
+    <button id="start-quiz">Mag start kana kupal!</button>
+  </div>
+
+  <div id="quiz-container" style="display: none;">
+    <h1 style="color: black;">Take a Quess!</h1>
+    <div id="timer">Time Left: 30:00</div>
+    <div id="question-number">Question: 1/58</div>
+    <img id="flag" src="" alt="Country Flag">
+    
+    <div id="capital-section">
+      <h3>Capital:</h3>
+      <input id="capital-answer" type="text" placeholder="Enter the capital" autocomplete="off">
+      <div id="capital-result"></div>
+    </div>
+    
+    <div id="country-section" style="display: none;">
+      <h3>Country:</h3>
+      <input id="country-answer" type="text" placeholder="Enter the country" autocomplete="off">
+      <div id="country-result"></div>
+    </div>
+    
+    <div id="result"></div>
+    <button id="give-up" style="margin-top: 20px;">Give Up</button>
+  </div>  
+
+  <div id="end-container">
+    <h2 style="color: black;">Quiz Over!</h2>
+    <p id="score-result" style="font-size: 18px;"></p>
+    <p id="percentage-result" style="font-size: 18px;"></p>
+    <p id="time-result" style="font-size: 18px;"></p>
+    <button id="restart-quiz">Retake Quiz</button>
+  </div>
+
+  <script>
+    // Fisher-Yates Shuffle Algorithm
+    function shuffleArray(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+      }
+    }
+
+    let questions = [
+      { flag: 'https://flagcdn.com/w320/af.png', country: 'Afghanistan', capital: 'Kabul' },
+      { flag: 'https://flagcdn.com/w320/ax.png', country: 'Aland Islands', capital: 'Mariehamn' },
+      { flag: 'https://flagcdn.com/w320/al.png', country: 'Albania', capital: 'Tirana' },
+      { flag: 'https://flagcdn.com/w320/dz.png', country: 'Algeria', capital: 'Algiers' },
+      { flag: 'https://flagcdn.com/w320/as.png', country: 'American Samoa', capital: 'Pago Pago' },
+      { flag: 'https://flagcdn.com/w320/ad.png', country: 'Andorra', capital: 'Andorra La Vella' },
+      { flag: 'https://flagcdn.com/w320/ao.png', country: 'Angola', capital: 'Luanda' },
+      { flag: 'https://flagcdn.com/w320/ai.png', country: 'Anguilla', capital: 'The Valley' },
+      { flag: 'https://flagcdn.com/w320/ag.png', country: 'Antigua and Barbuda', capital: "Saint John's" },
+      { flag: 'https://flagcdn.com/w320/ar.png', country: 'Argentina', capital: 'Buenos Aires' },
+      { flag: 'https://flagcdn.com/w320/am.png', country: 'Armenia', capital: 'Yerevan' },
+      { flag: 'https://flagcdn.com/w320/aw.png', country: 'Aruba', capital: 'Oranjestad' },
+      { flag: 'https://flagcdn.com/w320/au.png', country: 'Australia', capital: 'Canberra' },
+      { flag: 'https://flagcdn.com/w320/at.png', country: 'Austria', capital: 'Vienna' },
+      { flag: 'https://flagcdn.com/w320/az.png', country: 'Azerbaijan', capital: 'Baku' },
+      { flag: 'https://flagcdn.com/w320/bs.png', country: 'Bahamas', capital: 'Nassau' },
+      { flag: 'https://flagcdn.com/w320/bh.png', country: 'Bahrain', capital: 'Manama' },
+      { flag: 'https://flagcdn.com/w320/bd.png', country: 'Bangladesh', capital: 'Dhaka' },
+      { flag: 'https://flagcdn.com/w320/bb.png', country: 'Barbados', capital: 'Bridgetown' },
+      { flag: 'https://flagcdn.com/w320/by.png', country: 'Belarus', capital: 'Minsk' },
+      { flag: 'https://flagcdn.com/w320/be.png', country: 'Belgium', capital: 'Brussels' },
+      { flag: 'https://flagcdn.com/w320/bz.png', country: 'Belize', capital: 'Belmopan' },
+      { flag: 'https://flagcdn.com/w320/bj.png', country: 'Benin', capital: 'Porto-Novo' },
+      { flag: 'https://flagcdn.com/w320/bm.png', country: 'Bermuda', capital: 'Hamilton' },
+      { flag: 'https://flagcdn.com/w320/bt.png', country: 'Bhutan', capital: 'Thimphu' },
+      { flag: 'https://flagcdn.com/w320/bo.png', country: 'Bolivia', capital: 'Sucre' },
+      { flag: 'https://flagcdn.com/w320/ba.png', country: 'Bosnia and Herzegovina', capital: 'Sarajevo' },
+      { flag: 'https://flagcdn.com/w320/bw.png', country: 'Botswana', capital: 'Gaborone' },
+      { flag: 'https://flagcdn.com/w320/br.png', country: 'Brazil', capital: 'Brasilia' },
+      { flag: 'https://flagcdn.com/w320/io.png', country: 'British Indian Ocean Territory', capital: 'Diego Garcia' },
+      { flag: 'https://flagcdn.com/w320/bn.png', country: 'Brunei', capital: 'Bandar Seri Begawan' },
+      { flag: 'https://flagcdn.com/w320/bg.png', country: 'Bulgaria', capital: 'Sofia' },
+      { flag: 'https://flagcdn.com/w320/bf.png', country: 'Burkina Faso', capital: 'Ouagadougou' },
+      { flag: 'https://flagcdn.com/w320/bi.png', country: 'Burundi', capital: 'Gitega' },
+      { flag: 'https://flagcdn.com/w320/kh.png', country: 'Cambodia', capital: 'Phnom Penh' },
+      { flag: 'https://flagcdn.com/w320/cm.png', country: 'Cameroon', capital: 'Yaounde' },
+      { flag: 'https://flagcdn.com/w320/ca.png', country: 'Canada', capital: 'Ottawa' },
+      { flag: 'https://flagcdn.com/w320/cv.png', country: 'Cape Verde', capital: 'Praia' },
+      { flag: 'https://flagcdn.com/w320/bq.png', country: 'Caribbean Netherlands', capital: 'Kralendijk' },
+      { flag: 'https://flagcdn.com/w320/ky.png', country: 'Cayman Islands', capital: 'George Town' },
+      { flag: 'https://flagcdn.com/w320/cf.png', country: 'Central African Republic', capital: 'Bangui' },
+      { flag: 'https://flagcdn.com/w320/td.png', country: 'Chad', capital: "N'Djamena" },
+      { flag: 'https://flagcdn.com/w320/cl.png', country: 'Chile', capital: 'Santiago' },
+      { flag: 'https://flagcdn.com/w320/cn.png', country: 'China', capital: 'Beijing' },
+      { flag: 'https://flagcdn.com/w320/cx.png', country: 'Christmas Island', capital: 'Flying Fish Cove' },
+      { flag: 'https://flagcdn.com/w320/cc.png', country: 'Cocos(Keeling)Islands', capital: 'West Island' },
+      { flag: 'https://flagcdn.com/w320/co.png', country: 'Colombia', capital: 'Bogota' },
+      { flag: 'https://flagcdn.com/w320/km.png', country: 'Comoros', capital: 'Moroni' },
+      { flag: 'https://flagcdn.com/w320/cg.png', country: 'Republic of the Congo', capital: 'Brazzaville' },
+      { flag: 'https://flagcdn.com/w320/cd.png', country: 'Democratic Republic of the Congo', capital: 'Kinshasa' },
+      { flag: 'https://flagcdn.com/w320/ck.png', country: 'Cook Islands', capital: 'Avarua' },
+      { flag: 'https://flagcdn.com/w320/cr.png', country: 'Costa Rica', capital: 'San Jose' },
+      { flag: 'https://flagcdn.com/w320/ci.png', country: "Cote D'Ivoire", capital: 'Yamoussoukro' },
+      { flag: 'https://flagcdn.com/w320/hr.png', country: 'Croatia', capital: 'Zagreb' },
+      { flag: 'https://flagcdn.com/w320/cu.png', country: 'Cuba', capital: 'Havana' },
+      { flag: 'https://flagcdn.com/w320/cw.png', country: 'Curacao', capital: 'Willemstad' },
+      { flag: 'https://flagcdn.com/w320/cy.png', country: 'Cyprus', capital: 'Nicosia' },
+      { flag: 'https://flagcdn.com/w320/cz.png', country: 'Czechia', capital: 'Prague' },
+      { flag: 'https://flagcdn.com/w320/dk.png', country: 'Denmark', capital: 'Copenhagen' },
+      { flag: 'https://flagcdn.com/w320/dj.png', country: 'Djibouti', capital: 'Djibouti' },
+      { flag: 'https://flagcdn.com/w320/dm.png', country: 'Dominica', capital: 'Roseau' },
+      { flag: 'https://flagcdn.com/w320/do.png', country: 'Dominican Republic', capital: 'Santo Domingo' },
+      { flag: 'https://flagcdn.com/w320/ec.png', country: 'Ecuador', capital: 'Quito' },
+      { flag: 'https://flagcdn.com/w320/eg.png', country: 'Egypt', capital: 'Cairo' },
+      { flag: 'https://flagcdn.com/w320/sv.png', country: 'El Salvador', capital: 'San Salvador' },
+      { flag: 'https://flagcdn.com/w320/gb-eng.png', country: 'England', capital: 'London' },
+      { flag: 'https://flagcdn.com/w320/gq.png', country: 'Equatorial Guinea', capital: 'Malabo' },
+      { flag: 'https://flagcdn.com/w320/er.png', country: 'Eritrea', capital: 'Asmara' },
+      { flag: 'https://flagcdn.com/w320/ee.png', country: 'Estonia', capital: 'Tallinn' },
+      { flag: 'https://flagcdn.com/w320/sz.png', country: 'Eswatini', capital: 'Mbabane' },
+      { flag: 'https://flagcdn.com/w320/et.png', country: 'Ethiopia', capital: 'Addis Ababa' },
+      { flag: 'https://flagcdn.com/w320/fk.png', country: 'Falkland Islands', capital: 'Stanley' },
+      { flag: 'https://flagcdn.com/w320/fo.png', country: 'Faroe Islands', capital: 'Torshavn' },
+      { flag: 'https://flagcdn.com/w320/fj.png', country: 'Fiji', capital: 'Suva' },
+      { flag: 'https://flagcdn.com/w320/fi.png', country: 'Finland', capital: 'Helsinki' },
+      { flag: 'https://flagcdn.com/w320/fr.png', country: 'France', capital: 'Paris' },
+      { flag: 'https://flagcdn.com/w320/gf.png', country: 'French Guiana', capital: 'Cayenne' },
+      { flag: 'https://flagcdn.com/w320/pf.png', country: 'French Polynesia', capital: 'Papeete' },
+      { flag: 'https://flagcdn.com/w320/tf.png', country: 'French Southern and Antarctic Lands', capital: 'Port-Aux-Francais' },
+      { flag: 'https://flagcdn.com/w320/ga.png', country: 'Gabon', capital: 'Libreville' },
+      { flag: 'https://flagcdn.com/w320/gm.png', country: 'Gambia', capital: 'Banjul' },
+      { flag: 'https://flagcdn.com/w320/ge.png', country: 'Georgia', capital: 'Tbilisi' },
+      { flag: 'https://flagcdn.com/w320/de.png', country: 'Germany', capital: 'Berlin' },
+      { flag: 'https://flagcdn.com/w320/gh.png', country: 'Ghana', capital: 'Accra' },
+      { flag: 'https://flagcdn.com/w320/gi.png', country: 'Gibraltar', capital: 'Gibraltar' },
+      { flag: 'https://flagcdn.com/w320/gr.png', country: 'Greece', capital: 'Athens' },
+      { flag: 'https://flagcdn.com/w320/gl.png', country: 'Greenland', capital: 'Nuuk' },
+      { flag: 'https://flagcdn.com/w320/gd.png', country: 'Grenada', capital: "Saint George's" },
+      { flag: 'https://flagcdn.com/w320/gp.png', country: 'Guadeloupe', capital: 'Basse-Terre' },
+      { flag: 'https://flagcdn.com/w320/gu.png', country: 'Guam', capital: 'Hagatna' },
+      { flag: 'https://flagcdn.com/w320/gt.png', country: 'Guatemala', capital: 'Guatemala city' },
+      { flag: 'https://flagcdn.com/w320/gg.png', country: 'Guernsey', capital: 'Saint Peter Port' },
+      { flag: 'https://flagcdn.com/w320/gn.png', country: 'Guinea', capital: 'Conakry' },
+      { flag: 'https://flagcdn.com/w320/gw.png', country: 'Guinea-Bissau', capital: 'Bissau' },
+      { flag: 'https://flagcdn.com/w320/gy.png', country: 'Guyana', capital: 'Georgetown' },
+      { flag: 'https://flagcdn.com/w320/ht.png', country: 'Haiti', capital: 'Port-Au-Prince' },
+      { flag: 'https://flagcdn.com/w320/hn.png', country: 'Honduras', capital: 'Tegucigalpa' },
+      { flag: 'https://flagcdn.com/w320/hk.png', country: 'Hong Kong', capital: 'City of Victoria' },
+      { flag: 'https://flagcdn.com/w320/hu.png', country: 'Hungary', capital: 'Budapest' },
+      { flag: 'https://flagcdn.com/w320/is.png', country: 'Iceland', capital: 'Reykjavik' },
+      { flag: 'https://flagcdn.com/w320/in.png', country: 'India', capital: 'New Delhi' },
+      { flag: 'https://flagcdn.com/w320/id.png', country: 'Indonesia', capital: 'Jakarta' },
+      { flag: 'https://flagcdn.com/w320/ir.png', country: 'Iran', capital: 'Tehran' },
+      { flag: 'https://flagcdn.com/w320/iq.png', country: 'Iraq', capital: 'Baghdad' },
+      { flag: 'https://flagcdn.com/w320/ie.png', country: 'Ireland', capital: 'Dublin' },
+      { flag: 'https://flagcdn.com/w320/im.png', country: 'Isle of Man', capital: 'Douglas' },
+      { flag: 'https://flagcdn.com/w320/il.png', country: 'Israel', capital: 'Jerusalem' },
+      { flag: 'https://flagcdn.com/w320/it.png', country: 'Italy', capital: 'Rome' },
+      { flag: 'https://flagcdn.com/w320/jm.png', country: 'Jamaica', capital: 'Kingston' },
+      { flag: 'https://flagcdn.com/w320/jp.png', country: 'Japan', capital: 'Tokyo' },
+      { flag: 'https://flagcdn.com/w320/je.png', country: 'Jersey', capital: 'Saint Helier' },
+      { flag: 'https://flagcdn.com/w320/gb.png', country: 'United Kingdom', capital: 'London' },
+    ];
+
+    let currentQuestionIndex = 0;
+    let timer = 1800; // 30 minutes in seconds
+    let timerInterval;
+    let correctAnswers = 0;
+    let startTime;
+
+    const timerElement = document.getElementById('timer');
+    const flagElement = document.getElementById('flag');
+    const capitalAnswerElement = document.getElementById('capital-answer');
+    const countryAnswerElement = document.getElementById('country-answer');
+    const capitalResultElement = document.getElementById('capital-result');
+    const countryResultElement = document.getElementById('country-result');
+    const resultElement = document.getElementById('result');
+    const quizContainer = document.getElementById('quiz-container');
+    const startContainer = document.getElementById('start-container');
+    const capitalSection = document.getElementById('capital-section');
+    const countrySection = document.getElementById('country-section');
+    const endContainer = document.getElementById('end-container');
+    const scoreResultElement = document.getElementById('score-result');
+    const percentageResultElement = document.getElementById('percentage-result');
+    const timeResultElement = document.getElementById('time-result');
+    const questionNumberElement = document.getElementById('question-number');
+    const restartQuizButton = document.getElementById('restart-quiz');
+
+    function startQuiz() {
+      shuffleArray(questions); // Shuffle the questions when the quiz starts
+      startContainer.style.display = 'none';
+      quizContainer.style.display = 'block';
+      startTime = Date.now(); // Capture the start time
+      loadQuestion();
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      const minutes = Math.floor(timer / 60);
+      const seconds = timer % 60;
+      timerElement.textContent = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+      timer--;
+
+      if (timer < 0) {
+        clearInterval(timerInterval);
+        endQuiz();
+      }
+    }
+
+    function loadQuestion() {
+      const question = questions[currentQuestionIndex];
+      flagElement.src = question.flag;
+      capitalAnswerElement.value = '';
+      countryAnswerElement.value = '';
+      capitalResultElement.textContent = '';
+      countryResultElement.textContent = '';
+      capitalSection.style.display = 'block';
+      countrySection.style.display = 'none';
+      capitalAnswerElement.focus();
+
+      // Update the question counter
+      questionNumberElement.textContent = `Flag: ${currentQuestionIndex + 1}/${questions.length}`;
+    }
+
+    function checkCapital() {
+      const answer = capitalAnswerElement.value.trim().toLowerCase();
+      const question = questions[currentQuestionIndex];
+
+      if (answer === question.capital.toLowerCase()) {
+        capitalResultElement.textContent = 'Correct!';
+        capitalResultElement.style.color = 'green';
+        countrySection.style.display = 'block';
+        countryAnswerElement.focus();
+        capitalSection.style.display = 'none';
+      } else {
+        capitalResultElement.textContent = 'Incorrect. Try again!';
+        capitalResultElement.style.color = 'red';
+      }
+    }
+
+    function checkCountry() {
+      const answer = countryAnswerElement.value.trim().toLowerCase();
+      const question = questions[currentQuestionIndex];
+
+      if (answer === question.country.toLowerCase()) {
+        countryResultElement.textContent = 'Correct!';
+        countryResultElement.style.color = 'green';
+        correctAnswers++; // Increment the correct answer count
+        nextQuestion();
+      } else {
+        countryResultElement.textContent = 'Incorrect. Try again!';
+        countryResultElement.style.color = 'red';
+      }
+    }
+
+    function nextQuestion() {
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        loadQuestion();
+      } else {
+        endQuiz();
+      }
+    }
+
+    function endQuiz() {
+      clearInterval(timerInterval);
+      quizContainer.style.display = 'none';
+      endContainer.style.display = 'block';
+
+      const totalQuestions = questions.length;
+      const percentage = ((correctAnswers / totalQuestions) * 100).toFixed(2);
+
+      // Calculate the elapsed time
+      const elapsedTime = (Date.now() - startTime) / 1000; // in seconds
+      const elapsedMinutes = Math.floor(elapsedTime / 60);
+      const elapsedSeconds = Math.floor(elapsedTime % 60);
+
+      scoreResultElement.textContent = `You got ${correctAnswers} out of ${totalQuestions} correct!`;
+      percentageResultElement.textContent = `Your score: ${percentage}%`;
+      timeResultElement.textContent = `Time taken: ${elapsedMinutes} minutes ${elapsedSeconds} seconds`;
+    }
+
+    function restartQuiz() {
+      currentQuestionIndex = 0;
+      correctAnswers = 0;
+      timer = 1800;
+      endContainer.style.display = 'none';
+      startContainer.style.display = 'block';
+    }
+
+    document.getElementById('start-quiz').addEventListener('click', startQuiz);
+    capitalAnswerElement.addEventListener('input', checkCapital);
+    countryAnswerElement.addEventListener('input', checkCountry);
+    restartQuizButton.addEventListener('click', restartQuiz);
+
+    function giveUp() {
+        clearInterval(timerInterval); // Stop the timer
+        endQuiz(); // End the quiz
+      }
+      
+      // Add an event listener for the "Give Up" button
+      document.getElementById('give-up').addEventListener('click', giveUp);
+      
+  </script>
+</body>
+</html>
